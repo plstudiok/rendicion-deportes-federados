@@ -1,0 +1,8 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { createMovement, deleteMovement, getMovements, updateMovement, type MovementInput } from '@/services/movements.service';
+import { eventKeys } from '@/hooks/useEvents';
+export const movementKeys = { byEvent: (eventId: string) => ['movements', eventId] as const };
+export function useMovements(eventId: string) { return useQuery({ queryKey: movementKeys.byEvent(eventId), queryFn: () => getMovements(eventId), enabled: Boolean(eventId) }); }
+export function useCreateMovement() { const client = useQueryClient(); return useMutation({ mutationFn: createMovement, onSuccess: (movement) => { void client.invalidateQueries({ queryKey: movementKeys.byEvent(movement.evento_id) }); void client.invalidateQueries({ queryKey: eventKeys.all }); void client.invalidateQueries({ queryKey: ['dashboard'] }); } }); }
+export function useUpdateMovement() { const client = useQueryClient(); return useMutation({ mutationFn: ({ id, input }: { id: string; input: Omit<MovementInput, 'evento_id'> }) => updateMovement(id, input), onSuccess: (movement) => { void client.invalidateQueries({ queryKey: movementKeys.byEvent(movement.evento_id) }); void client.invalidateQueries({ queryKey: ['dashboard'] }); } }); }
+export function useDeleteMovement() { const client = useQueryClient(); return useMutation({ mutationFn: ({ id }: { id: string; eventId: string }) => deleteMovement(id), onSuccess: (_, variables) => { void client.invalidateQueries({ queryKey: movementKeys.byEvent(variables.eventId) }); void client.invalidateQueries({ queryKey: ['dashboard'] }); } }); }

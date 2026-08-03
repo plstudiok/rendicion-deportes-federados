@@ -1,0 +1,8 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { deleteReceipt, getEventDocumentStats, getReceipts, uploadReceipt } from '@/services/receipts.service';
+import type { Receipt } from '@/types';
+export const receiptKeys = { byMovement: (movementId: string) => ['receipts', movementId] as const };
+export function useEventDocumentStats(eventId: string) { return useQuery({ queryKey: ['event-documents', eventId], queryFn: () => getEventDocumentStats(eventId), enabled: Boolean(eventId) }); }
+export function useReceipts(movementId: string) { return useQuery({ queryKey: receiptKeys.byMovement(movementId), queryFn: () => getReceipts(movementId), enabled: Boolean(movementId) }); }
+export function useUploadReceipt() { const client = useQueryClient(); return useMutation({ mutationFn: ({ movementId, file }: { movementId: string; file: File }) => uploadReceipt(movementId, file), onSuccess: (receipt) => { void client.invalidateQueries({ queryKey: receiptKeys.byMovement(receipt.movimiento_id) }); void client.invalidateQueries({ queryKey: ['event-documents'] }); void client.invalidateQueries({ queryKey: ['journal'] }); void client.invalidateQueries({ queryKey: ['dashboard'] }); } }); }
+export function useDeleteReceipt() { const client = useQueryClient(); return useMutation({ mutationFn: ({ receipt }: { receipt: Receipt }) => deleteReceipt(receipt), onSuccess: (_, variables) => { void client.invalidateQueries({ queryKey: receiptKeys.byMovement(variables.receipt.movimiento_id) }); void client.invalidateQueries({ queryKey: ['event-documents'] }); void client.invalidateQueries({ queryKey: ['journal'] }); void client.invalidateQueries({ queryKey: ['dashboard'] }); } }); }

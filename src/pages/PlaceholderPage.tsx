@@ -1,0 +1,2 @@
+import { Container, EmptyState, PageHeader } from '@/components/ui';
+export function PlaceholderPage({ title, description }: { title: string; description: string }) { return <Container><PageHeader title={title} description={description} /><EmptyState title="Módulo preparado para el próximo sprint" description="La estructura de navegación ya está lista. Las funcionalidades de este módulo se incorporarán en una etapa posterior." /></Container>; }
